@@ -18,7 +18,7 @@ Dockerのライフサイクルに沿って追いかけられるように，ガ�
 
 ## Docker Hubを使ってみよう
 
-*Docker Hubはどうやって使えばいいの？**
+**Docker Hubはどうやって使えばいいの？**
 
 Docker HubはDockerのハブです。パブリックなDockerイメージをホストし，Docker環境をビルド・管理する手助けをします。より深く学ぶためには，こちらをご参照ください。
 
@@ -27,7 +27,7 @@ Docker HubはDockerのハブです。パブリックなDockerイメージをホ�
 
 ## アプリケーションをDocker化してみよう："Hello world"
 
-**コンテナ内でアプリケーションを実行するにはどうすればいいのかしら？**
+**コンテナ内でアプリケーションを実行するにはどうすればいいの？**
 
 Dockerは**コンテナベースの**仮想環境を提供し，あなたのアプリケーションを支援します。アプリケーションをDocker化して実行するには，[Dockerizing Applications](/userguide/dockerizing)をご覧ください。
 
