@@ -2,41 +2,34 @@ page_title: Working with Containers
 page_description: Learn how to manage and operate Docker containers.
 page_keywords: docker, the docker guide, documentation, docker.io, monitoring containers, docker top, docker inspect, docker port, ports, docker logs, log, Logs
 
-# Working with Containers
+# コンテナを扱う
 
-In the [last section of the Docker User Guide](/userguide/dockerizing)
-we launched our first containers. We launched two containers using the
-`docker run` command.
+[前節](/userguide/dockerizing)で，我々は最初のコンテナを立ち上げました。`docker run`コマンドを使って二つのコンテナを起動しました。
 
-* Containers we ran interactively in the foreground.
-* One container we ran daemonized in the background.
+* フォアグラウンドで起動したインタラクティブなコンテナ
+* バックグラウンドでデーモン化したコンテナ
 
-In the process we learned about several Docker commands:
+その過程でいくつかのDockerコマンドを学びました。
 
-* `docker ps` - Lists containers.
-* `docker logs` - Shows us the standard output of a container.
-* `docker stop` - Stops running containers.
+* `docker ps` - コンテナを一覧表示する。
+* `docker logs` - コンテナの標準出力を表示する。
+* `docker stop` - 実行中のコンテナを停止する。
 
 > **Tip:**
-> Another way to learn about `docker` commands is our
-> [interactive tutorial](https://www.docker.io/gettingstarted).
+> [インタラクティブチュートリアル](https://www.docker.io/gettingstarted)でも`docker`コマンドを学ぶ事ができます。
 
-The `docker` client is pretty simple. Each action you can take
-with Docker is a command and each command can take a series of
-flags and arguments.
+`docker`クライアントは非常にシンプルです。Dockerに対して行う事ができる操作はコマンドになっており，各コマンドは一連のフラグと引数を取ることができます。
 
     # Usage:  [sudo] docker [flags] [command] [arguments] ..
     # Example:
     $ docker run -i -t ubuntu /bin/bash
 
-Let's see this in action by using the `docker version` command to return
-version information on the currently installed Docker client and daemon.
+`docker version`コマンドを使って，実際に見てみましょう。このコマンドは，現在インストールされているDockerクライアントとデーモンのバージョン情報を返却します。
 
     $ sudo docker version
 
-This command will not only provide you the version of Docker client and
-daemon you are using, but also the version of Go (the programming
-language powering Docker).
+このコマンドはDockerクライアントとデーモンのバージョン情報だけで無く，Go（Dockerを動かしているプログラミング言語）のバージョンも表示しています。
+
 
     Client version: 0.8.0
     Go version (client): go1.2
@@ -49,14 +42,13 @@ language powering Docker).
 
     Last stable version: 0.8.0
 
-### Seeing what the Docker client can do
+### Dockerクライアントができる事を見てみる
 
-We can see all of the commands available to us with the Docker client by
-running the `docker` binary without any options.
+`docker`バイナリをオプションなしで実行すると，利用できる全てのコマンドを表示する事ができます。
 
     $ sudo docker
 
-You will see a list of all currently available commands.
+利用可能な全てのコマンドを見ることができます。
 
     Commands:
          attach    Attach to a running container
@@ -64,21 +56,20 @@ You will see a list of all currently available commands.
          commit    Create a new image from a container's changes
     . . .
 
-### Seeing Docker command usage
+### コマンドの使い方を知る
 
-You can also zoom in and review the usage for specific Docker commands.
+各Dockerコマンドの詳細を調べることもできます。
 
-Try typing Docker followed with a `[command]` to see the usage for that
-command:
+`[command]`を後ろに付けて`docker`を実行すると，そのコマンドの使用方法が表示されます。
 
     $ sudo docker attach
     Help output . . .
 
-Or you can also pass the `--help` flag to the `docker` binary.
+あるいは`--help`フラグをつけても使用方法を確認することが可能です。
 
     $ sudo docker images --help
 
-This will display the help text and all available flags:
+こうすると，ヘルプ文言と全ての使用可能なフラグが表示されます。
 
     Usage: docker attach [OPTIONS] CONTAINER
 
@@ -87,157 +78,110 @@ This will display the help text and all available flags:
       --no-stdin=false: Do not attach stdin
       --sig-proxy=true: Proxify all received signal to the process (even in non-tty mode)
 
-> **Note:** 
-> You can see a full list of Docker's commands
-> [here](/reference/commandline/cli/).
+> **注釈**
+> Dockerの完全なコマンドの一覧は[ここ](/reference/commandline/cli/)で見ることができます。
 
-## Running a Web Application in Docker
+## DockerでWebアプリケーションを動かす
 
-So now we've learnt a bit more about the `docker` client let's move onto
-the important stuff: running more containers. So far none of the
-containers we've run did anything particularly useful though. So let's
-build on that experience by running an example web application in
-Docker.
+ここまで，`docker`クライアントについて更に少し学んで来ました。もっと多くのコンテナを動かすという重要なステップに移行しましょう。これまで我々が実行したコンテナは特に有用な事は何もしていませんが，WebアプリケーションをDockerで動かす事でこの経験を積むことにしましょう。
 
-For our web application we're going to run a Python Flask application.
-Let's start with a `docker run` command.
+今回は，PythonのライブラリFlaskを使ってWebアプリケーションを作ります。`docker run`から始めましょう。
 
     $ sudo docker run -d -P training/webapp python app.py
 
-Let's review what our command did. We've specified two flags: `-d` and
-`-P`. We've already seen the `-d` flag which tells Docker to run the
-container in the background. The `-P` flag is new and tells Docker to
-map any required network ports inside our container to our host. This
-lets us view our web application.
+このコマンドが何をしたか見直してみましょう。`-d`と`-P`という二つのフラグを指定しています。`-d`フラグは既に見た通り，コンテナをバックグラウンドで実行するためのものでした。新たに出てきた`-P`フラグは，コンテナ内で要求された全てのポートをホストのポートにマッピングします。これでWebアプリケーションを見ることができるようになります。
 
-We've specified an image: `training/webapp`. This image is a
-pre-built image we've created that contains a simple Python Flask web
-application.
+また，`training/webapp`というイメージを指定しました。これは我々が作っておいたイメージで，簡単なFlaskのWebアプリケーションが入っています。
 
-Lastly, we've specified a command for our container to run: `python
-app.py`. This launches our web application.
+最後に，コンテナに`python app.py`というコマンドを実行するように指定しました。このコマンドでWebアプリケーションが起動します。
 
-> **Note:** 
-> You can see more detail on the `docker run` command in the [command
-> reference](/reference/commandline/cli/#run) and the [Docker Run
-> Reference](/reference/run/).
+> **注釈**
+> `docker run`コマンドの詳細な情報は，[コマンドリファレンス](/reference/commandline/cli/#run)と[Docker Runリファレンス](/reference/run/)で確認できます。
 
-## Viewing our Web Application Container
+## Webアプリケーションコンテナを見る
 
-Now let's see our running container using the `docker ps` command.
+では，`docker ps`コマンドでコンテナを見てみましょう。
 
     $ sudo docker ps -l
     CONTAINER ID  IMAGE                   COMMAND       CREATED        STATUS        PORTS                    NAMES
     bc533791f3f5  training/webapp:latest  python app.py 5 seconds ago  Up 2 seconds  0.0.0.0:49155->5000/tcp  nostalgic_morse
 
-You can see we've specified a new flag, `-l`, for the `docker ps`
-command. This tells the `docker ps` command to return the details of the
-*last* container started.
+`docker ps`コマンドにフラグ`-l`を新たに追加したことがわかるでしょう。このフラグを追加すると，`docker ps`コマンドは**最後に**起動したコンテナの詳細な情報を表示します。
 
-> **Note:** 
-> By default, the `docker ps` command only shows information about running
-> containers. If you want to see stopped containers too use the `-a` flag.
+> **注釈**
+> デフォルトでは，`docker ps`コマンドは起動中のコンテナの情報しか表示しません。停止中のコンテナの情報も確認したければ，`-a`フラグを追加してください。
 
-We can see the same details we saw [when we first Dockerized a
-container](/userguide/dockerizing) with one important addition in the `PORTS`
-column.
+[初めてコンテナをDocker化した際](/userguide/dockerizing)に見たコンテナの詳細情報に加え，`PORTS`列に追加された重要な情報を確認できます。
 
     PORTS
     0.0.0.0:49155->5000/tcp
 
-When we passed the `-P` flag to the `docker run` command Docker mapped any
-ports exposed in our image to our host.
+`-P`フラグを付けて`docker run`コマンドを実行した場合，イメージが外部に公開したポートはホストのポートにマッピングされます。
 
-> **Note:** 
-> We'll learn more about how to expose ports in Docker images when
-> [we learn how to build images](/userguide/dockerimages).
+> **注釈**
+> [どうやってイメージをビルドするか]を学ぶ時に，ポートを外部に公開する詳細な方法について見ることになります。
 
-In this case Docker has exposed port 5000 (the default Python Flask
-port) on port 49155.
+この場合，Dockerはポート5000（Flaskのデフォルトポートです）をホストの49155番ポートにマッピングしています。
 
-Network port bindings are very configurable in Docker. In our last
-example the `-P` flag is a shortcut for `-p 5000` that makes port 5000
-inside the container to a high port (from the range 49000 to 49900) on
-the local Docker host. We can also bind Docker container's to specific
-ports using the `-p` flag, for example:
+Dockerのポートバインディングは，多様な設定が行えます。この例で`-P`フラグは，コンテナのポート5000番を高いポート（49000から49900まで）にマッピングするという意味の`-p 5000`のショートカットです。`-p`フラグを使って，コンテナのポートを特定のポートにマッピングするように指定することもできます。例えば，こうします。
 
     $ sudo docker run -d -p 5000:5000 training/webapp python app.py
 
-This would map port 5000 inside our container to port 5000 on our local
-host. You might be asking about now: why wouldn't we just want to always
-use 1:1 port mappings in Docker containers rather than mapping to high
-ports? Well 1:1 mappings have the constraint of only being able to map
-one of each port on your local host. Let's say you want to test two
-Python applications: both bound to port 5000 inside your container.
-Without Docker's port mapping you could only access one at a time.
+これはコンテナ内の5000番ポートをホストの5000番ポートにマッピングします。あなたはこう質問するかもしれません。なぜ高いポートにマッピングするのでは無く，ホストとコンテナを1:1にポートマッピングしないんだ，と。共に5000番ポートにコンテナ内でバインドされた二つのPythonアプリケーションをテストしたいとします。Dockerのポートマッピングが無ければ，一度に片方しかアクセスすることができませんね。
 
-So let's now browse to port 49155 in a web browser to
-see the application.
+では，ブラウザでポート49155番を指定して見てみましょう。
 
 ![Viewing the web application](/userguide/webapp1.png).
 
-Our Python application is live!
+Pythonアプリケーションが動いていますね！
 
-> **Note:**
-> If you have used the boot2docker virtual machine on OS X, Windows or Linux,
-> you'll need to get the IP of the virtual host instead of using localhost.
-> You can do this by running the following in
-> the boot2docker shell.
+> **注釈**
+> OSXでboot2dockerバーチャルマシンをOS X，WindowsあるいはLinuxで使った場合，ローカルホストではなく仮想ホストのIPを取得する必要があります。これにはboot2dockerシェルで次の様にします。
 > 
 >     $ boot2docker ip
 >     The VM's Host only interface IP address is: 192.168.59.103
-> 
-> In this case you'd browse to http://192.168.59.103:49155 for the above example.
+>
+> この場合，上記の例でhttp://192.168.59.103:49155をブラウザで見ることになります。
 
-## A Network Port Shortcut
+## ポートのショートカット
 
-Using the `docker ps` command to return the mapped port is a bit clumsy so
-Docker has a useful shortcut we can use: `docker port`. To use `docker port` we
-specify the ID or name of our container and then the port for which we need the
-corresponding public-facing port.
+`docker ps`コマンドでマッピングされたポートを調べるのはちょっとややこしいので，Dockerは便利なショートカット，`docker port`を用意しています。`docker port`コマンドはコンテナのIDまたは名前と，対応する公開ポートを知りたいポート番号を指定して使用します。
 
     $ sudo docker port nostalgic_morse 5000
     0.0.0.0:49155
 
-In this case we've looked up what port is mapped externally to port 5000 inside
-the container.
+この例では，コンテナ内のポート5000番が外部の何番ポートにマッピングされているかを確認しました。
 
+## Webアプリケーションのログを見る
 ## Viewing the Web Application's Logs
 
-Let's also find out a bit more about what's happening with our application and
-use another of the commands we've learnt, `docker logs`.
+我々のアプリケーションで何が起こっているのか，もう少し詳しく見てみましょう。また，既に学んだ`docker logs`コマンドのまた別の使用法も見てみます。
 
     $ sudo docker logs -f nostalgic_morse
     * Running on http://0.0.0.0:5000/
     10.0.2.2 - - [23/May/2014 20:16:31] "GET / HTTP/1.1" 200 -
     10.0.2.2 - - [23/May/2014 20:16:31] "GET /favicon.ico HTTP/1.1" 404 -
 
-This time though we've added a new flag, `-f`. This causes the `docker
-logs` command to act like the `tail -f` command and watch the
-container's standard out. We can see here the logs from Flask showing
-the application running on port 5000 and the access log entries for it.
+新たに`-f`フラグを追加しました。これによって`docker logs`コマンドが`tail -f`コマンドのように働き，コンテナの標準出力を監視するようになります。ここでは，ポート5000番でアプリケーションが動いているという行とアクセスログをFlaskが出力しているのを確認できます。
 
-## Looking at our Web Application Container's processes
+## コンテナのプロセスを見る
 
-In addition to the container's logs we can also examine the processes
-running inside it using the `docker top` command.
+コンテナのログに加え，コンテナ内で動くプロセスの情報を確認することも`docker top`コマンドによって可能です。
 
     $ sudo docker top nostalgic_morse
     PID                 USER                COMMAND
     854                 root                python app.py
 
-Here we can see our `python app.py` command is the only process running inside
-the container.
+`python app.py`コマンドがコンテナ内で動いている唯一のプロセスだと確認できました。
 
+## コンテナを検査する
 ## Inspecting our Web Application Container
 
-Lastly, we can take a low-level dive into our Docker container using the
-`docker inspect` command. It returns a JSON hash of useful configuration
-and status information about Docker containers.
+最後に，`docker inspect`コマンドを使ってDockerの低レベルな領域に飛び込む事ができます。このコマンドはDockerコンテナの設定とステータスをJSON形式で返却します。
 
     $ sudo docker inspect nostalgic_morse
 
-Let's see a sample of that JSON output.
+JSON出力の例を見てみましょう。
 
     [{
         "ID": "bc533791f3f500b280a9626688bc79e342e3ea0d528efe3a86a51ecb28ea20",
@@ -252,71 +196,58 @@ Let's see a sample of that JSON output.
            "User": "",
     . . .
 
-We can also narrow down the information we want to return by requesting a
-specific element, for example to return the container's IP address we would:
+要素を指定する事で，返却する情報を絞り込むこともできます。例えば，コンテナのIPを取得したい場合はこうします。
 
     $ sudo docker inspect -f '{{ .NetworkSettings.IPAddress }}' nostalgic_morse
     172.17.0.5
 
-## Stopping our Web Application Container
+## コンテナを停止する
 
-Okay we've seen web application working. Now let's stop it using the
-`docker stop` command and the name of our container: `nostalgic_morse`.
+コンテナ上のWebアプリケーションがちゃんと動いていることは確認できました。今度は`docker stop`コマンドを使って，我々のコンテナ`nostalgic_morse`を停止してみましょう。
 
     $ sudo docker stop nostalgic_morse
     nostalgic_morse
 
-We can now use the `docker ps` command to check if the container has
-been stopped.
+コンテナが停止したかどうか`docker ps`コマンドを使って確認できます。
 
     $ sudo docker ps -l
 
-## Restarting our Web Application Container
+## コンテナを再起動する
 
-Oops! Just after you stopped the container you get a call to say another
-developer needs the container back. From here you have two choices: you
-can create a new container or restart the old one. Let's look at
-starting our previous container back up.
+おおっと，コンテナを停止した直後に電話がかかってきました。別の開発者はこのコンテナが必要だそうです。対処するには二つの選択肢があります。新しくコンテナを作るか，古いコンテナを再起動するか，です。コンテナが復帰するのを確認してみましょう。
 
     $ sudo docker start nostalgic_morse
     nostalgic_morse
 
-Now quickly run `docker ps -l` again to see the running container is
-back up or browse to the container's URL to see if the application
-responds.
+`docker ps -l`を実行してコンテナが復活したことを確認するか，ブラウザでURLを開いてアプリケーションが反応するか確認してください。
 
-> **Note:** 
-> Also available is the `docker restart` command that runs a stop and
-> then start on the container.
+> **注釈**
+> `docker restart`コマンドもこの状況で使えます。このコマンドはコンテナを一度停止してから起動します。
 
-## Removing our Web Application Container
+## コンテナを削除する
 
-Your colleague has let you know that they've now finished with the container
-and won't need it again. So let's remove it using the `docker rm` command.
+あなたの同僚が作業を終え，もうコンテナが必要無い事を知らせて来ました。`docker rm`コマンドを使って削除しましょう。
 
     $ sudo docker rm nostalgic_morse
     Error: Impossible to remove a running container, please stop it first or use -f
     2014/05/24 08:12:56 Error: failed to remove one or more containers
 
-What's happened? We can't actually remove a running container. This protects
-you from accidentally removing a running container you might need. Let's try
-this again by stopping the container first.
+何が起きたのでしょう？実は，実行中のコンテナは削除できないのです。これにより，意図せず実行中の必要なコンテナを削除する事を防ぎます。では，コンテナを停止してからもう一度削除してみましょう。
+
 
     $ sudo docker stop nostalgic_morse
     nostalgic_morse
     $ sudo docker rm nostalgic_morse
     nostalgic_morse
 
-And now our container is stopped and deleted.
+これでコンテナが停止され，削除されました。
 
-> **Note:**
-> Always remember that deleting a container is final!
+> **注釈**
+> コンテナを削除するのは常に最後の手だと忘れないで下さい！
 
-# Next steps
+# 次のステップ
 
-Until now we've only used images that we've downloaded from
-[Docker Hub](https://hub.docker.com) now let's get introduced to
-building and sharing our own images.
+これまで，[Docker Hub](https://hub.docker.com)からダウンロードしたイメージだけを取り扱って来ましたが，自らイメージを作り，共有する方法を学びましょう。
 
-Go to [Working with Docker Images](/userguide/dockerimages).
+[Dockerイメージを扱う](/userguide/dockerimages)に進んで下さい。
 
