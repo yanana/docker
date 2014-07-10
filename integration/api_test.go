@@ -4,174 +4,20 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 	"time"
 
 	"github.com/dotcloud/docker/api"
 	"github.com/dotcloud/docker/api/server"
 	"github.com/dotcloud/docker/engine"
-	"github.com/dotcloud/docker/image"
 	"github.com/dotcloud/docker/runconfig"
 	"github.com/dotcloud/docker/vendor/src/code.google.com/p/go/src/pkg/archive/tar"
 )
-
-func TestGetImagesJSON(t *testing.T) {
-	eng := NewTestEngine(t)
-	defer mkDaemonFromEngine(eng, t).Nuke()
-
-	job := eng.Job("images")
-	initialImages, err := job.Stdout.AddListTable()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := job.Run(); err != nil {
-		t.Fatal(err)
-	}
-
-	req, err := http.NewRequest("GET", "/images/json?all=0", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	r := httptest.NewRecorder()
-
-	if err := server.ServeRequest(eng, api.APIVERSION, r, req); err != nil {
-		t.Fatal(err)
-	}
-	assertHttpNotError(r, t)
-
-	images := engine.NewTable("Created", 0)
-	if _, err := images.ReadListFrom(r.Body.Bytes()); err != nil {
-		t.Fatal(err)
-	}
-
-	if images.Len() != initialImages.Len() {
-		t.Errorf("Expected %d image, %d found", initialImages.Len(), images.Len())
-	}
-
-	found := false
-	for _, img := range images.Data {
-		if strings.Contains(img.GetList("RepoTags")[0], unitTestImageName) {
-			found = true
-			break
-		}
-	}
-	if !found {
-		t.Errorf("Expected image %s, %+v found", unitTestImageName, images)
-	}
-
-	r2 := httptest.NewRecorder()
-
-	// all=1
-
-	initialImages = getAllImages(eng, t)
-
-	req2, err := http.NewRequest("GET", "/images/json?all=true", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := server.ServeRequest(eng, api.APIVERSION, r2, req2); err != nil {
-		t.Fatal(err)
-	}
-	assertHttpNotError(r2, t)
-
-	images2 := engine.NewTable("Id", 0)
-	if _, err := images2.ReadListFrom(r2.Body.Bytes()); err != nil {
-		t.Fatal(err)
-	}
-
-	if images2.Len() != initialImages.Len() {
-		t.Errorf("Expected %d image, %d found", initialImages.Len(), images2.Len())
-	}
-
-	found = false
-	for _, img := range images2.Data {
-		if img.Get("Id") == unitTestImageID {
-			found = true
-			break
-		}
-	}
-	if !found {
-		t.Errorf("Retrieved image Id differs, expected %s, received %+v", unitTestImageID, images2)
-	}
-
-	r3 := httptest.NewRecorder()
-
-	// filter=a
-	req3, err := http.NewRequest("GET", "/images/json?filter=aaaaaaaaaa", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if err := server.ServeRequest(eng, api.APIVERSION, r3, req3); err != nil {
-		t.Fatal(err)
-	}
-	assertHttpNotError(r3, t)
-
-	images3 := engine.NewTable("Id", 0)
-	if _, err := images3.ReadListFrom(r3.Body.Bytes()); err != nil {
-		t.Fatal(err)
-	}
-
-	if images3.Len() != 0 {
-		t.Errorf("Expected 0 image, %d found", images3.Len())
-	}
-}
-
-func TestGetImagesHistory(t *testing.T) {
-	eng := NewTestEngine(t)
-	defer mkDaemonFromEngine(eng, t).Nuke()
-
-	r := httptest.NewRecorder()
-
-	req, err := http.NewRequest("GET", fmt.Sprintf("/images/%s/history", unitTestImageName), nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := server.ServeRequest(eng, api.APIVERSION, r, req); err != nil {
-		t.Fatal(err)
-	}
-	assertHttpNotError(r, t)
-
-	outs := engine.NewTable("Created", 0)
-	if _, err := outs.ReadListFrom(r.Body.Bytes()); err != nil {
-		t.Fatal(err)
-	}
-	if len(outs.Data) != 1 {
-		t.Errorf("Expected 1 line, %d found", len(outs.Data))
-	}
-}
-
-func TestGetImagesByName(t *testing.T) {
-	eng := NewTestEngine(t)
-	defer mkDaemonFromEngine(eng, t).Nuke()
-
-	req, err := http.NewRequest("GET", "/images/"+unitTestImageName+"/json", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	r := httptest.NewRecorder()
-	if err := server.ServeRequest(eng, api.APIVERSION, r, req); err != nil {
-		t.Fatal(err)
-	}
-	assertHttpNotError(r, t)
-
-	img := &image.Image{}
-	if err := json.Unmarshal(r.Body.Bytes(), img); err != nil {
-		t.Fatal(err)
-	}
-	if img.ID != unitTestImageID {
-		t.Errorf("Error inspecting image")
-	}
-}
 
 func TestGetContainersJSON(t *testing.T) {
 	eng := NewTestEngine(t)

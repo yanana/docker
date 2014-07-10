@@ -14,7 +14,7 @@ Create an empty file called `Dockerfile`:
     $ touch Dockerfile
 
 Next, define the parent image you want to use to build your image on top
-of. We'll use [Ubuntu](https://registry.hub.docker.cm/_/ubuntu/) (tag:
+of. We'll use [Ubuntu](https://registry.hub.docker.com/_/ubuntu/) (tag:
 `latest`), which is available on [Docker Hub](https://hub.docker.com):
 
     # Riak
@@ -53,7 +53,7 @@ After that, we install and setup a few dependencies:
 
     RUN locale-gen en_US en_US.UTF-8
 
-    ADD supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+    COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
     RUN echo 'root:basho' | chpasswd
 

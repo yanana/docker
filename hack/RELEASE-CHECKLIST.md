@@ -32,7 +32,21 @@ git fetch origin
 git branch -D release || true
 git checkout --track origin/release
 git checkout -b bump_$VERSION
+```
+
+If it's a regular release, we usually merge master.
+```bash
 git merge origin/master
+```
+
+Otherwise, if it is a hotfix release, we cherry-pick only the commits we want.
+```bash
+# get the commits ids we want to cherry-pick
+git log
+# cherry-pick the commits starting from the oldest one, without including merge commits
+git cherry-pick <commit-id>
+git cherry-pick <commit-id>
+...
 ```
 
 ### 2. Update CHANGELOG.md
@@ -138,11 +152,10 @@ make AWS_S3_BUCKET=beta-docs.docker.io docs-release
 ### 5. Commit and create a pull request to the "release" branch
 
 ```bash
-export GITHUBUSER="YOUR_GITHUB_USER"
 git add VERSION CHANGELOG.md
 git commit -m "Bump version to $VERSION"
 git push $GITHUBUSER bump_$VERSION
-echo "https://github.com/$GITHUBUSER/docker/compare/dotcloud:master...$GITHUBUSER:bump_$VERSION?expand=1"
+echo "https://github.com/$GITHUBUSER/docker/compare/dotcloud:release...$GITHUBUSER:bump_$VERSION?expand=1"
 ```
 
 That last command will give you the proper link to visit to ensure that you
