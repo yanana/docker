@@ -95,6 +95,10 @@ Dockerコンテナが別のものに接続する方法はポートマッピン�
 
 `training/postgres`イメージを使って，PostgreSQLが稼働する`db`という名前のコンテナを作成しました。
 
+次に，リンクしたコンテナで置き換えられるよう，前に作った`web`コンテナを削除しておきましょう。
+
+    $ docker rm -f web
+
 では，`web`というコンテナを新たに作り，`db`コンテナとリンクしてみましょう。
 
     $ sudo docker run -d -P --name web --link db:db training/webapp python app.py
