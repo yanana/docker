@@ -109,12 +109,12 @@ Dockerコンテナが別のものに接続する方法はポートマッピン�
 
     $ docker ps
     CONTAINER ID  IMAGE                     COMMAND               CREATED             STATUS             PORTS                    NAMES
-    349169744e49  training/postgres:latest  su postgres -c '/usr  About a minute ago  Up About a minute  5432/tcp                 db
-    aed84ee21bde  training/webapp:latest    python app.py         16 hours ago        Up 2 minutes       0.0.0.0:49154->5000/tcp  db/web,web
+    349169744e49  training/postgres:latest  su postgres -c '/usr  About a minute ago  Up About a minute  5432/tcp                 db, web/db
+    aed84ee21bde  training/webapp:latest    python app.py         16 hours ago        Up 2 minutes       0.0.0.0:49154->5000/tcp  web
 
-`db`と`web`が確認できます。そして，`web`コンテナの`NAMES`列に`db/web`があるのがわかります。これはつまり，`web`コンテナが`db`コンテナに親子関係でリンクしているという事です。
+`db`と`web`が確認できます。そして，`db`コンテナの`NAMES`列に`web/db`があるのがわかります。これはつまり，`web`コンテナが`db`コンテナに親子関係でリンクしているという事です。
 
-では，コンテナをリンクさせると何が起きるのでしょうか？リンクはコンテナ間に親子関係を生じるという事を既に確認しました。親コンテナ，この場合は`db`は子コンテナ`web`の情報にアクセスできます。これを実現するため，いかなるポートもコンテナ外に公開する必要無しに，Dockerはコンテナ間にセキュアトンネルを作成します。`db`コンテナを起動した際，`-P`フラグも`-p`フラグも指定しなかった事に気付いたと思います。コンテナ間をリンクしているため，PostgreSQLデータベースをネットワーク上で公開する必要が無いのです。
+では，コンテナをリンクさせると何が起きるのでしょうか？リンクはコンテナ間に親子関係を生じるという事を既に確認しました。親コンテナ，この場合は`web`，は子コンテナ`db`の情報にアクセスできます。これを実現するため，いかなるポートもコンテナ外に公開する必要無しに，Dockerはコンテナ間にセキュアトンネルを作成します。`db`コンテナを起動した際，`-P`フラグも`-p`フラグも指定しなかった事に気付いたと思います。コンテナ間をリンクしているため，PostgreSQLデータベースをネットワーク上で公開する必要が無いのです。
 
 Dockerは子コンテナ内で，親コンテナに提供するための接続情報を二つの方法で公開します。
 
