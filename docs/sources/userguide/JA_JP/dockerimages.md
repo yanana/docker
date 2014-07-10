@@ -264,7 +264,7 @@ To use our new image to create a container we can then:
     Removing intermediate container 5e9d0065c1f7
     Successfully built 324104cde6ad
 
-
+`docker build`コマンドを`-t`フラグ
 
 We've specified our `docker build` command and used the `-t` flag to identify
 our new image as belonging to the user `ouruser`, the repository name `sinatra`
@@ -301,18 +301,16 @@ We can then create a container from our new image.
 > [`Dockerfile`](/reference/builder/) reference for a
 > detailed description and examples of every instruction.
 
-## Setting tags on an image
+## イメージにタグを付ける
 
-You can also add a tag to an existing image after you commit or build it. We
-can do this using the `docker tag` command. Let's add a new tag to our
-`ouruser/sinatra` image.
+`docker tag`コマンドを使うと，既存のイメージにタグを付ける事もできます。`ouruser/sinatra`イメージにタグをつけてみましょう。
+
 
     $ sudo docker tag 5db5f8471261 ouruser/sinatra:devel
 
-The `docker tag` command takes the ID of the image, here `5db5f8471261`, and our
-user name, the repository name and the new tag.
+`docker tag`コマンドはイメージのID，この例では`5db5f8471261`を引数として取り，次いでユーザ名，リポジトリ名，そして新しいタグを受け取ります。
 
-Let's see our new tag using the `docker images` command.
+`docker images`コマンドを使って，設定した新しいタグを見てみましょう。
 
     $ sudo docker images ouruser/sinatra
     REPOSITORY          TAG     IMAGE ID      CREATED        VIRTUAL SIZE
@@ -320,12 +318,9 @@ Let's see our new tag using the `docker images` command.
     ouruser/sinatra     devel   5db5f8471261  11 hours ago   446.7 MB
     ouruser/sinatra     v2      5db5f8471261  11 hours ago   446.7 MB
 
-## Push an image to Docker Hub
+## Docker Hubにイメージをプッシュする
 
-Once you've built or created a new image you can push it to [Docker
-Hub](https://hub.docker.com) using the `docker push` command. This
-allows you to share it with others, either publicly, or push it into [a
-private repository](https://registry.hub.docker.com/plans/).
+イメージができたら，`docker push`コマンドを使って[Docker Hub](https://hub.docker.com)にプッシュできます。[Docker Hub](https://hub.docker.com)へプッシュしたイメージは，公開してシェアする事もできるし，[プライベートリポジトリ](https://registry.hub.docker.com/plans)に置いておく事もできます。
 
     $ sudo docker push ouruser/sinatra
     The push refers to a repository [ouruser/sinatra] (len: 1)
@@ -333,7 +328,9 @@ private repository](https://registry.hub.docker.com/plans/).
     Pushing repository ouruser/sinatra (3 tags)
     . . .
 
-## Remove an image from the host
+## ホストからイメージを削除する
+
+
 
 You can also remove images on your Docker host in a way [similar to
 containers](
