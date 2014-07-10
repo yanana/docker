@@ -1,178 +1,127 @@
-page_title: Linking Containers Together
+page_title: コンテナをリンクする
 page_description: Learn how to connect Docker containers together.
 page_keywords: Examples, Usage, user guide, links, linking, docker, documentation, examples, names, name, container naming, port, map, network port, network
 
-# Linking Containers Together
+# コンテナをリンクする
 
-In [the Using Docker section](/userguide/usingdocker) we touched on
-connecting to a service running inside a Docker container via a network
-port. This is one of the ways that you can interact with services and
-applications running inside Docker containers. In this section we're
-going to give you a refresher on connecting to a Docker container via a
-network port as well as introduce you to the concepts of container
-linking.
+[Dockerを使う](/userguide/usingdocker)の節でネットワークポートを経由してコンテナ内で稼働しているサービスにアクセスする事に触れました。これはDockerコンテナの内部で動くサービスやアプリケーションとやりとりする方法の一つです。本節では，コンテナにネットワークポート経由で接続する方法の復習と，コンテナリンクのコンセプトを紹介します。
 
-## Network port mapping refresher
+## ポートマッピングの復習
 
-In [the Using Docker section](/userguide/usingdocker) we created a
-container that ran a Python Flask application.
+[Dockerを使う](/userguide/usingdocker)節でFlaskアプリケーションを動かすコンテナを作成しました。
 
     $ sudo docker run -d -P training/webapp python app.py
 
-> **Note:** 
-> Containers have an internal network and an IP address
-> (remember we used the `docker inspect` command to show the container's
-> IP address in the [Using Docker](/userguide/usingdocker/) section).
-> Docker can have a variety of network configurations. You can see more
-> information on Docker networking [here](/articles/networking/).
+> **注釈**
+> コンテナは内部のネットワークとIPアドレスを持っています（[Dockerを使う](/userguide/usingdocker/)で`docker inspect`コマンドを使ってコンテナのIPアドレスを調べた事を思い出してください）。Dockerは様々なネットワーク設定を行う事が可能です。Dockerのネットワークについては，[ここ](/articles/networking/)でより詳細な情報を見る事ができます。
 
-When we created that container we used the `-P` flag to automatically map any
-network ports inside that container to a random high port from the range 49000
-to 49900 on our Docker host.  When we subsequently ran `docker ps` we saw that
-port 5000 was bound to port 49155.
+このコンテナを作った際，`-P`フラグを使ってホストの49000番から49900番までの間のランダムなポートをコンテナのポートにマッピングしました。その後，`docker ps`コマンドを実行してコンテナのポート5000番がホストのポート49155番にマッピングされている事を確認しました。
 
     $ sudo docker ps nostalgic_morse
     CONTAINER ID  IMAGE                   COMMAND       CREATED        STATUS        PORTS                    NAMES
     bc533791f3f5  training/webapp:latest  python app.py 5 seconds ago  Up 2 seconds  0.0.0.0:49155->5000/tcp  nostalgic_morse
 
-We also saw how we can bind a container's ports to a specific port using
-the `-p` flag.
+`-p`フラグを使ってコンテナのポートホストの指定したポートにマッピングできる事も確認しました。
 
     $ sudo docker run -d -p 5000:5000 training/webapp python app.py
 
-And we saw why this isn't such a great idea because it constrains us to
-only one container on that specific port.
+そしてまた，こうしてポートマッピングを行う事があまりいい方法では無いという事も学びました。なぜなら，この特定のポートにただ一つのコンテナを結びつけてしまうからです。
 
-There are also a few other ways we can configure the `-p` flag. By
-default the `-p` flag will bind the specified port to all interfaces on
-the host machine. But we can also specify a binding to a specific
-interface, for example only to the `localhost`.
+`-p`フラグを使って設定する方法が他にも少しだけあります。`-p`フラグはデフォルトでホスト上の全ネットワークインターフェースにポートマッピングを行いますが，マッピングを特定のインターフェースに限定する事も可能です。`localhost`にだけマッピングする例を見てみましょう。
 
     $ sudo docker run -d -p 127.0.0.1:5000:5000 training/webapp python app.py
 
-This would bind port 5000 inside the container to port 5000 on the
-`localhost` or `127.0.0.1` interface on the host machine.
+このコマンドは，コンテナのポート5000番をホストの`localhost`あるいは`127.0.0.1`のポート5000番にマッピングします。
 
-Or to bind port 5000 of the container to a dynamic port but only on the
-`localhost` we could:
+あるいは，コンテナのポート5000番をホストのポートに動的に割り振りたいが，`localhost`上でのみマッピングをしたい場合はこうします。
 
     $ sudo docker run -d -p 127.0.0.1::5000 training/webapp python app.py
 
-We can also bind UDP ports by adding a trailing `/udp`, for example:
+ポート指定の後ろに`/udp`を追加する事でUDPポートをマッピングする事もできます。
 
     $ sudo docker run -d -p 127.0.0.1:5000:5000/udp training/webapp python app.py
 
-We also saw the useful `docker port` shortcut which showed us the
-current port bindings, this is also useful for showing us specific port
-configurations. For example if we've bound the container port to the
-`localhost` on the host machine this will be shown in the `docker port`
-output.
+現在のポートマッピングがどうなっているかを調べる，便利な`docker port`コマンドにも触れました。これはまた特定のポートに関する設定を表示するのにも有用です。例えば，コンテナのポートをホストの`localhost`にバインドした場合，`docker port`は次の様な出力をします。
 
     $ docker port nostalgic_morse 5000
     127.0.0.1:49155
 
-> **Note:** 
-> The `-p` flag can be used multiple times to configure multiple ports.
+> **注釈**
+> `-p`フラグを複数使って，複数のポートマッピングを指定できます。
 
-## Docker Container Linking
 
-Network port mappings are not the only way Docker containers can connect
-to one another. Docker also has a linking system that allows you to link
-multiple containers together and share connection information between
-them. Docker linking will create a parent child relationship where the
-parent container can see selected information about its child.
+## Dockerコンテナリンク
 
+Dockerコンテナが別のものに接続する方法はポートマッピングだけではありません。Dockerはコンテナを相互にリンクさせ，接続情報を互いに共有する手段も持ち合わせています。Dockerコンテナリンクは親コンテナが子コンテナの限定された情報を参照できるという親子関係を作ります。
+
+## コンテナの命名
 ## Container naming
 
-To perform this linking Docker relies on the names of your containers.
-We've already seen that each container we create has an automatically
-created name, indeed we've become familiar with our old friend
-`nostalgic_morse` during this guide. You can also name containers
-yourself. This naming provides two useful functions:
+このリンク作成を行うために，Dockerはコンテナの名前に依存します。各コンテナは自動生成された名前を割り当てられる事を既に見ました。実際，私たちはこのガイドを通じて古くからの友人`nostalgic_morse`とすっかり仲良くなりましたね。コンテナを自分で命名することもできます。命名には二つの価値ある機能があります。
 
-1. It's useful to name containers that do specific functions in a way
-   that makes it easier for you to remember them, for example naming a
-   container with a web application in it `web`.
+1. Webアプリケーションを内部に持つコンテナを`web`と命名するように，機能に即した名前をコンテナに付けることでコンテナを覚えやすくなります。
+
+2. Dockerに
+
 
 2. It provides Docker with a reference point that allows it to refer to other
    containers, for example link container `web` to container `db`.
 
-You can name your container by using the `--name` flag, for example:
+`--name`フラグを使ってコンテナに名前を付ける事ができます。例えば，
 
     $ sudo docker run -d -P --name web training/webapp python app.py
 
-You can see we've launched a new container and used the `--name` flag to
-call the container `web`. We can see the container's name using the
-`docker ps` command.
+`--name`フラグを使ってコンテナを`web`と命名して，新たにコンテナを起動した事がわかりますね。コンテナの名前は`docker ps`コマンドを使って確認できます。
 
     $ sudo docker ps -l
     CONTAINER ID  IMAGE                  COMMAND        CREATED       STATUS       PORTS                    NAMES
     aed84ee21bde  training/webapp:latest python app.py  12 hours ago  Up 2 seconds 0.0.0.0:49154->5000/tcp  web
 
-We can also use `docker inspect` to return the container's name.
+`docker inspect`コマンドを使ってコンテナの名前を取得することもできます。
 
     $ sudo docker inspect -f "{{ .Name }}" aed84ee21bde
     /web
 
-> **Note:** 
-> Container names have to be unique. That means you can only call
-> one container `web`. If you want to re-use a container name you must delete the
-> old container with the `docker rm` command before you can create a new
-> container with the same name. As an alternative you can use the `--rm`
-> flag with the `docker run` command. This will delete the container
-> immediately after it stops.
+> **注釈**
+> コンテナ名はユニークでなければなりません。つまり，一つのコンテナしか`web`と呼ぶ事はできないということです。もしコンテナ名を再利用したければ，`docker rm`コマンドで古いコンテナを削除してから，同じ名前のコンテナを新規に作成する必要があります。こうする代わりに，`--rm`フラグを付けて`docker run`コマンドを実行しても同じ事ができます。この方法では，コンテナを停止して即これを削除します。
 
+
+## コンテナリンク
 ## Container Linking
 
-Links allow containers to discover and securely communicate with each
-other. To create a link you use the `--link` flag. Let's create a new
-container, this one a database.
+リンクによって，コンテナはお互いを見つけ，セキュアに通信する事ができます。リンクを作成するには，`--link`フラグを使います。では，新しいコンテナを作って見ましょう。今度はデータベースです。
 
     $ sudo docker run -d --name db training/postgres
 
-Here we've created a new container called `db` using the `training/postgres`
-image, which contains a PostgreSQL database.
+`training/postgres`イメージを使って，PostgreSQLが稼働する`db`という名前のコンテナを作成しました。
 
-Now let's create a new `web` container and link it with our `db` container.
+では，`web`というコンテナを新たに作り，`db`コンテナとリンクしてみましょう。
 
     $ sudo docker run -d -P --name web --link db:db training/webapp python app.py
 
-This will link the new `web` container with the `db` container we created
-earlier. The `--link` flag takes the form:
+これで，`web`コンテナと`db`コンテナがリンクされました。`--link`フラグは次の形を取ります。
 
     --link name:alias
 
-Where `name` is the name of the container we're linking to and `alias` is an
-alias for the link name. We'll see how that alias gets used shortly.
+`name`にはリンクする対象のコンテナの名前を，`alias`にはリンクのエイリアスを設定します。エイリアスがどのように使用されるのかはすぐにわかります。
 
-Let's look at our linked containers using `docker ps`.
+リンクしたコンテナを`docker ps`で見てみましょう。
 
     $ docker ps
     CONTAINER ID  IMAGE                     COMMAND               CREATED             STATUS             PORTS                    NAMES
     349169744e49  training/postgres:latest  su postgres -c '/usr  About a minute ago  Up About a minute  5432/tcp                 db
     aed84ee21bde  training/webapp:latest    python app.py         16 hours ago        Up 2 minutes       0.0.0.0:49154->5000/tcp  db/web,web
 
-We can see our named containers, `db` and `web`, and we can see that the `web`
-containers also shows `db/web` in the `NAMES` column. This tells us that the
-`web` container is linked to the `db` container in a parent/child relationship.
+`db`と`web`が確認できます。そして，`web`コンテナの`NAMES`列に`db/web`があるのがわかります。これはつまり，`web`コンテナが`db`コンテナに親子関係でリンクしているという事です。
 
-So what does linking the containers do? Well we've discovered the link creates
-a parent-child relationship between the two containers. The parent container,
-here `db`, can access information on the child container `web`. To do this
-Docker creates a secure tunnel between the containers without the need to
-expose any ports externally on the container. You'll note when we started the
-`db` container we did not use either of the `-P` or `-p` flags. As we're
-linking the containers we don't need to expose the PostgreSQL database via the
-network.
+では，コンテナをリンクさせると何が起きるのでしょうか？リンクはコンテナ間に親子関係を生じるという事を既に確認しました。親コンテナ，この場合は`db`は子コンテナ`web`の情報にアクセスできます。これを実現するため，いかなるポートもコンテナ外に公開する必要無しに，Dockerはコンテナ間にセキュアトンネルを作成します。`db`コンテナを起動した際，`-P`フラグも`-p`フラグも指定しなかった事に気付いたと思います。コンテナ間をリンクしているため，PostgreSQLデータベースをネットワーク上で公開する必要が無いのです。
 
-Docker exposes connectivity information for the parent container inside the
-child container in two ways:
+Dockerは子コンテナ内で，親コンテナに提供するための接続情報を二つの方法で公開します。
 
-* Environment variables,
-* Updating the `/etc/hosts` file.
+* 環境変数
+* `/etc/hosts`ファイルを更新する
 
-Let's look first at the environment variables Docker sets. Let's run the `env`
-command to list the container's environment variables.
+最初に，Dockerが設定する環境変数を見てみましょう。`env`コマンドを叩いてコンテナの環境変数を一覧してみます。
 
 ```
     $ sudo docker run --rm --name web2 --link db:db training/webapp env
@@ -186,32 +135,19 @@ command to list the container's environment variables.
     . . .
 ```
 
-> **Note**:
-> These Environment variables are only set for the first process in the
-> container. Similarly, some daemons (such as `sshd`)
-> will scrub them when spawning shells for connection.
+> **注釈**
+> これらの環境変数はコンテナ内の最初のプロセスにだけ設定されます。同様に，ある種のデーモン（`sshd`の様な）は，コネクションのためのシェルを生成する際に環境変数を削除します。
 
-We can see that Docker has created a series of environment variables with
-useful information about our `db` container. Each variable is prefixed with
-`DB_` which is populated from the `alias` we specified above. If our `alias`
-were `db1` the variables would be prefixed with `DB1_`. You can use these
-environment variables to configure your applications to connect to the database
-on the `db` container. The connection will be secure, private and only the
-linked `web` container will be able to talk to the `db` container.
+`db`コンテナに関する有用な情報を含む，一連の環境変数をDockerが作成したことを確認できます。各変数の名前は先頭に`DB_`が付与されていますが，これはコンテナリンクを作成する際に設定した`alias`から作られたものです。もし`alias`が`db1`だったら，環境変数の接頭辞は`DB1_`になっています。これらの環境変数を使って，`db`コンテナ上のデータベースに接続するための設定をアプリケーション上で行う事ができます。このコネクションはセキュアで，プライベートかつリンクされた`web`コンテナのみが`db`コンテナに接続が可能です。
 
-In addition to the environment variables Docker adds a host entry for the
-linked parent to the `/etc/hosts` file. Let's look at this file on the `web`
-container now.
+環境変数に加え，Dockerはリンクした親コンテナのホスト情報を`/etc/hosts`に追加します。`web`コンテナ上の`/etc/hosts`を見てみましょう。
 
     root@aed84ee21bde:/opt/webapp# cat /etc/hosts
     172.17.0.7  aed84ee21bde
     . . .
     172.17.0.5  db
 
-We can see two relevant host entries. The first is an entry for the `web`
-container that uses the Container ID as a host name. The second entry uses the
-link alias to reference the IP address of the `db` container. Let's try to ping
-that host now via this host name.
+二つの関連するホスト情報を見ることができます。最初のものは`web`コンテナのもので，ホスト名としてコンテナIDを利用しています。二つ目のものは，リンクのエイリアスを使って`db`コンテナのIPアドレスを参照します。では，このホスト名でpingを飛ばしてみましょう。
 
     root@aed84ee21bde:/opt/webapp# apt-get install -yqq inetutils-ping
     root@aed84ee21bde:/opt/webapp# ping db
@@ -220,22 +156,18 @@ that host now via this host name.
     56 bytes from 172.17.0.5: icmp_seq=1 ttl=64 time=0.250 ms
     56 bytes from 172.17.0.5: icmp_seq=2 ttl=64 time=0.256 ms
 
-> **Note:** 
-> We had to install `ping` because our container didn't have it.
+> **注釈**
+> コンテナにインストールされていなかったため，`ping`コマンドをインストールする必要がありました。
 
-We've used the `ping` command to ping the `db` container using it's host entry
-which resolves to `172.17.0.5`. We can make use of this host entry to configure
-an application to make use of our `db` container.
+`db`コンテナにpingを飛ばすため，`172.17.0.5`に解決する`db`コンテナのhostsファイルのエントリを使って`ping`コマンドを実行しました。アプリケーションから`db`コンテナを利用するのに，このホスト設定を活用することができます。
 
-> **Note:** 
-> You can link multiple child containers to a single parent. For
-> example, we could have multiple web containers attached to our `db`
-> container.
+> **注釈**
+> 一つの親コンテナに複数の子コンテナをリンクさせる事が可能です。例えば，`db`コンテナに複数のWebアプリケーションのコンテナをリンクさせる事ができます。
 
-# Next step
 
-Now we know how to link Docker containers together the next step is
-learning how to manage data, volumes and mounts inside our containers.
+# 次のステップ
 
-Go to [Managing Data in Containers](/userguide/dockervolumes).
+これでコンテナをリンクさせる方法がわかりました。次のステップで，データとボリュームを管理し，コンテナ内でマウントする方法を学びましょう。
 
+
+[コンテナのデータ管理](/userguide/dockervolumes)に進む。
