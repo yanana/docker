@@ -1,31 +1,22 @@
-page_title: Working with Docker Images
+page_title: Dockerイメージを扱う
 page_description: How to work with Docker images.
 page_keywords: documentation, docs, the docker guide, docker guide, docker, docker platform, virtualization framework, docker.io, Docker images, Docker image, image management, Docker repos, Docker repositories, docker, docker tag, docker tags, Docker Hub, collaboration
 
-# Working with Docker Images
+# Dockerイメージを扱う
 
-In the [introduction](/introduction/) we've discovered that Docker
-images are the basis of containers. In the
-[previous](/userguide/dockerizing/) [sections](/userguide/usingdocker/)
-we've used Docker images that already exist, for example the `ubuntu`
-image and the `training/webapp` image.
+[イントロダクション](/introduction/)でDockerイメージはコンテナの基礎である事を知りました。[以前の](/userguide/dockerizing/)[節](/userguide/usingdocker)で，我々は`ubuntu`や`training/webapp`等の既に存在するDockerイメージを使用してきました。
 
-We've also discovered that Docker stores downloaded images on the Docker
-host. If an image isn't already present on the host then it'll be
-downloaded from a registry: by default the
-[Docker Hub](https://hub.docker.com) public registry.
+Dockerはホストにダウンロードしたイメージを保存する事もまた発見しました。イメージがホストに存在しなければ，レジストリからダウンロードされます。また，デフォルトでこのレジストリは[Docker Hub](https://hub.docker.com)が設定されています。
 
-In this section we're going to explore Docker images a bit more
-including:
+本節では，以下の内容を見ていき，Dockerイメージについて少し深掘りしたいと思います。
 
-* Managing and working with images locally on your Docker host;
-* Creating basic images;
-* Uploading images to [Docker Hub](https://hub.docker.com).
+* ローカルDockerホスト上でイメージを取り扱う
+* 基本的なイメージを作る
+* イメージを[Docker Hub](https://hub.docker.com)にアップロードする。
 
-## Listing images on the host
+## ホスト上にあるイメージを一覧する
 
-Let's start with listing the images we have locally on our host. You can
-do this using the `docker images` command like so:
+最初に，ローカルホスト上にあるイメージを一覧することから始めましょう。`docker images`コマンドを使います。
 
     $ sudo docker images
     REPOSITORY       TAG      IMAGE ID      CREATED      VIRTUAL SIZE
@@ -44,46 +35,34 @@ do this using the `docker images` command like so:
     ubuntu           10.04    3db9c44f4520  4 weeks ago  183 MB
     ubuntu           lucid    3db9c44f4520  4 weeks ago  183 MB
 
-We can see the images we've previously used in our [user guide](/userguide/).
-Each has been downloaded from [Docker Hub](https://hub.docker.com) when we
-launched a container using that image.
+[ユーザーガイド](/userguide/)で今まで利用してきたイメージをここに見ることができます。それぞれコンテナの起動時に[Docker Hub](https://hub.docker.com)からダウンロードしたものです。
 
-We can see three crucial pieces of information about our images in the listing.
+この一覧から，極めて重要な情報を三つ読み取る事ができます。
 
-* What repository they came from, for example `ubuntu`.
-* The tags for each image, for example `14.04`.
-* The image ID of each image.
+* どのリポジトリから取得したか，例えば，`ubuntu`。
+* イメージに付けられたタグ，例えば，`14.04`。
+* 各イメージのイメージID
 
-A repository potentially holds multiple variants of an image. In the case of
-our `ubuntu` image we can see multiple variants covering Ubuntu 10.04, 12.04,
-12.10, 13.04, 13.10 and 14.04. Each variant is identified by a tag and you can
-refer to a tagged image like so:
+リポジトリは潜在的に，一つのイメージの複数の変種を保持します。我々の`ubuntu`イメージの例で言うと，Ubuntu 10.04，12.04，12.10，13.04，13.10，14.04を含む複数の変種を見て取れます。それぞれタグによって識別され，タグ付けされたイメージはこのようにして参照できます。
 
     ubuntu:14.04
 
-So when we run a container we refer to a tagged image like so:
+したがって，コンテナを起動する際にタグ付けされたイメージを参照するのに以下の様にします。
 
     $ sudo docker run -t -i ubuntu:14.04 /bin/bash
 
-If instead we wanted to build an Ubuntu 12.04 image we'd use:
+Ubuntu 14.04ではなく，Ubuntu 12.04のイメージが欲しければ，こうなります。
 
     $ sudo docker run -t -i ubuntu:12.04 /bin/bash
 
-If you don't specify a variant, for example you just use `ubuntu`, then Docker
-will default to using the `ubuntu:latest` image.
+単に`ubuntu`と指定してタグを指定しなかった場合，Dockerはデフォルトで`ubuntu:latest`イメージを使用します。
 
-> **Tip:** 
-> We recommend you always use a specific tagged image, for example
-> `ubuntu:12.04`. That way you always know exactly what variant of an image is
-> being used.
+**Tip:**
+例えば`ubuntu:12.04`の様にして，常にタグを指定してイメージを利用する事をおすすめします。こうするとイメージのどの変種が利用されているかがはっきりとわかります。
 
-## Getting a new image
+## 新しいイメージを取得する
 
-So how do we get new images? Well Docker will automatically download any image
-we use that isn't already present on the Docker host. But this can potentially
-add some time to the launch of a container. If we want to pre-load an image we
-can download it using the `docker pull` command. Let's say we'd like to
-download the `centos` image.
+どうやって新しいイメージを取得できるのでしょうか？ホスト上に存在しないイメージを利用しようとすると，Dockerは自動的にイメージをダウンロードします。しかし，この動作によって，潜在的に起動時間が延びることになります。事前にイメージを取得したい場合には，`docker pull`コマンドを使用します。`centos`イメージをダウンロードしたいとすると，
 
     $ sudo docker pull centos
     Pulling repository centos
@@ -93,21 +72,18 @@ download the `centos` image.
     ef52fb1fe610: Download complete
     . . .
 
-We can see that each layer of the image has been pulled down and now we
-can run a container from this image and we won't have to wait to
-download the image.
+イメージの各レイヤがプルされている事が確認できます。これでイメージのダウンロードを待つこと無く，このイメージを起動できます。
 
     $ sudo docker run -t -i centos /bin/bash
     bash-4.1#
 
-## Finding images
+## イメージを見つける
 
-One of the features of Docker is that a lot of people have created Docker
-images for a variety of purposes. Many of these have been uploaded to
-[Docker Hub](https://hub.docker.com). We can search these images on the
-[Docker Hub](https://hub.docker.com) website.
+Dockerの特徴付けるものの一つに，数多くの人が様々な目的のためにDockerイメージを作成しているという事が挙げられます。この内の多くが[Docker Hub](https://hub.docker.com)にアップロードされているため，[Docker Hub](https://hub/docker.com)でこれらのイメージを検索する事ができます。
 
 ![indexsearch](/userguide/search.png)
+
+`docker search`コマンドを使うと，コマンドライン上でイメージを検索できます。我々のチームはRubyとSinatraがインストールされたイメージを開発のため必要としているとしましょう。
 
 We can also search for images on the command line using the `docker search`
 command. Let's say our team wants an image with Ruby and Sinatra installed on
@@ -166,44 +142,36 @@ update and create images.
 1. We can update a container created from an image and commit the results to an image.
 2. We can use a `Dockerfile` to specify instructions to create an image.
 
-### Updating and committing an image
+### イメージを更新し，コミットする
 
-To update an image we first need to create a container from the image
-we'd like to update.
+イメージを更新するには，更新したいイメージからコンテナを起動する必要があります。
 
     $ sudo docker run -t -i training/sinatra /bin/bash
     root@0b2616b0e5a8:/#
 
-> **Note:** 
-> Take note of the container ID that has been created, `0b2616b0e5a8`, as we'll
-> need it in a moment.
+> **注釈**
+>
+> すぐに必要となるので，作成されたコンテナIDをメモしておいてください。この例では`0b2616b0e5a8`です。
 
-Inside our running container let's add the `json` gem.
+起動中のコンテナ内で，`json`gemを追加しましょう。
 
     root@0b2616b0e5a8:/# gem install json
 
-Once this has completed let's exit our container using the `exit`
-command.
+追加できたら，`exit`コマンドでコンテナを終了しましょう。
 
-Now we have a container with the change we want to make. We can then
-commit a copy of this container to an image using the `docker commit`
-command.
+これで，必要な変更が為されたコンテナを手に入れました。そして`docker commit`コマンドを使ってコンテナのコピーをコミットすることができます。
 
     $ sudo docker commit -m="Added json gem" -a="Kate Smith" \
     0b2616b0e5a8 ouruser/sinatra:v2
     4f177bd27a9ff0f6dc2a830403925b5360bfe0b93d476f7fc3231110e7f71b1c
 
-Here we've used the `docker commit` command. We've specified two flags: `-m`
-and `-a`. The `-m` flag allows us to specify a commit message, much like you
-would with a commit on a version control system. The `-a` flag allows us to
-specify an author for our update.
+今，`docker commit`コマンドを，`-m`と`-a`という二つのフラグを指定して使用しました。`-m`フラグは，バージョン管理システムでコミットするのと同様に，コミットメッセージを指定するために使います。`−ａ`フラグはこの更新の作者（author）を指定するのに使います。
 
-We've also specified the container we want to create this new image from,
-`0b2616b0e5a8` (the ID we recorded earlier) and we've specified a target for
-the image:
+また，新しいイメージを作る元となるコンテナ`0b2616b0e5a8`（少し前にメモしたIDです）を指定しました。そしてイメージの更新対象も指定しました。
 
     ouruser/sinatra:v2
 
+この更新対象を少し詳しく見てみましょう。ユーザ`ouruser`，
 Let's break this target down. It consists of a new user, `ouruser`, that we're
 writing this image to. We've also specified the name of the image, here we're
 keeping the original image name `sinatra`. Finally we're specifying a tag for
@@ -223,24 +191,19 @@ To use our new image to create a container we can then:
     $ sudo docker run -t -i ouruser/sinatra:v2 /bin/bash
     root@78e82f680994:/#
 
-### Building an image from a `Dockerfile`
+### `Dockerfile`からイメージを作成する
 
-Using the `docker commit` command is a pretty simple way of extending an image
-but it's a bit cumbersome and it's not easy to share a development process for
-images amongst a team. Instead we can use a new command, `docker build`, to
-build new images from scratch.
+`docker commit`コマンドを使うのは非常にシンプルにイメージを拡張する方法ですが，少し扱いづらく，チーム内でイメージの構築プロセスを共有するのが難しくなります。代わりに，`docker  build`コマンドを使ってスクラッチからイメージを構築できます。
 
-To do this we create a `Dockerfile` that contains a set of instructions that
-tell Docker how to build our image.
+`docker build`コマンドでイメージを構築するには，Dockerイメージをどの様にして構築するかをDockerに教えるための命令を集めた`Dockerfile`を作ります。
 
-Let's create a directory and a `Dockerfile` first.
+ディレクトリと`Dockerfile`をまず作りましょう。
 
     $ mkdir sinatra
     $ cd sinatra
     $ touch Dockerfile
 
-Each instruction creates a new layer of the image. Let's look at a simple
-example now for building our own Sinatra image for our development team.
+各命令はイメージの新しいレイヤを構築します。独自のシンプルなSinatraイメージを開発チームのために作って見ましょう。
 
     # This is a comment
     FROM ubuntu:14.04
@@ -249,27 +212,23 @@ example now for building our own Sinatra image for our development team.
     RUN apt-get -qqy install ruby ruby-dev
     RUN gem install sinatra
 
-Let's look at what our `Dockerfile` does. Each instruction prefixes a statement and is capitalized.
+この`Dockerfile`が何をするのか見てみましょう。各命令は大文字の命令文（ステートメント）が前置されています。
 
     INSTRUCTION statement
 
-> **Note:**
-> We use `#` to indicate a comment
+> **注釈**
+> コメントを表すのに`#`を使っています。
 
-The first instruction `FROM` tells Docker what the source of our image is, in
-this case we're basing our new image on an Ubuntu 14.04 image.
+最初の命令である`FROM`はこのイメージのソースが何であるかをDockerに教えます。ここでは，Ubuntu 14.04のイメージをベースにしています。
 
-Next we use the `MAINTAINER` instruction to specify who maintains our new image.
+次に，`MAINTAINER`という命令を使ってこのイメージのメンテナが誰であるかを指定しています。
 
-Lastly, we've specified three `RUN` instructions. A `RUN` instruction executes
-a command inside the image, for example installing a package. Here we're
-updating our APT cache, installing Ruby and RubyGems and then installing the
-Sinatra gem.
+最後に，三つの`RUN`命令を書きました。`RUN`命令はイメージ内でコマンドを実行します。ここではAPTキャッシュをアップデートし，RubyとRubyGemsをインストールし，そしてSinatraのgemをインストールします。
 
-> **Note:** 
-> There are [a lot more instructions available to us in a Dockerfile](/reference/builder).
+> **注釈**
+> Dockerfileで利用できる命令は，[他にもたくさん](/reference/builder)あります。
 
-Now let's take our `Dockerfile` and use the `docker build` command to build an image.
+では，`Dockerfile`と`docker build`コマンドでイメージをビルドしてみましょう。
 
     $ sudo docker build -t="ouruser/sinatra:v2" .
     Uploading context  2.56 kB
@@ -305,6 +264,8 @@ Now let's take our `Dockerfile` and use the `docker build` command to build an i
     Removing intermediate container 5e9d0065c1f7
     Successfully built 324104cde6ad
 
+
+
 We've specified our `docker build` command and used the `-t` flag to identify
 our new image as belonging to the user `ouruser`, the repository name `sinatra`
 and given it the tag `v2`.
@@ -333,7 +294,7 @@ We can then create a container from our new image.
     $ sudo docker run -t -i ouruser/sinatra:v2 /bin/bash
     root@8196968dac35:/#
 
-> **Note:** 
+> **Note:**
 > This is just the briefest introduction to creating images. We've
 > skipped a whole bunch of other instructions that you can use. We'll see more of
 > those instructions in later sections of the Guide or you can refer to the
@@ -396,4 +357,3 @@ containers. Now learn how to build whole application stacks with Docker
 by linking together multiple Docker containers.
 
 Go to [Linking Containers Together](/userguide/dockerlinks).
-
