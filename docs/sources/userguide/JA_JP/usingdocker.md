@@ -137,7 +137,7 @@ Pythonアプリケーションが動いていますね！
 
 > **注釈**
 > OSXでboot2dockerバーチャルマシンをOS X，WindowsあるいはLinuxで使った場合，ローカルホストではなく仮想ホストのIPを取得する必要があります。これにはboot2dockerシェルで次の様にします。
-> 
+>
 >     $ boot2docker ip
 >     The VM's Host only interface IP address is: 192.168.59.103
 >
@@ -174,7 +174,6 @@ Pythonアプリケーションが動いていますね！
 `python app.py`コマンドがコンテナ内で動いている唯一のプロセスだと確認できました。
 
 ## コンテナを検査する
-## Inspecting our Web Application Container
 
 最後に，`docker inspect`コマンドを使ってDockerの低レベルな領域に飛び込む事ができます。このコマンドはDockerコンテナの設定とステータスをJSON形式で返却します。
 
@@ -249,4 +248,3 @@ JSON出力の例を見てみましょう。
 これまで，[Docker Hub](https://hub.docker.com)からダウンロードしたイメージだけを取り扱って来ましたが，自らイメージを作り，共有する方法を学びましょう。
 
 [Dockerイメージを扱う](/userguide/dockerimages)に進んで下さい。
-
